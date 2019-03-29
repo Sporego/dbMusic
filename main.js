@@ -14,14 +14,88 @@ const connection = mysql.createConnection({
   database: "ice_creamDB"
 });
 
+// connection.connect(function(err) {
+//   if (err) throw err;
+//   console.log("connected as id " + connection.threadId);
+
+//   connection.query("SELECT * FROM products", function(err, res) {
+//     if (err) throw err;
+//     console.log(res);
+//   });
+
+//   connection.end();
+// });
+
 connection.connect(function(err) {
   if (err) throw err;
-  console.log("connected as id " + connection.threadId);
+  console.log("connected as id " + connection.threadId + "\n");
+  createProduct();
+});
 
+function createProduct() {
+  console.log("Inserting a new product...\n");
+  var query = connection.query(
+    "INSERT INTO products SET ?",
+    {
+      flavor: "Rocky Road",
+      price: 3.0,
+      quantity: 50
+    },
+    function(err, res) {
+      console.log(res.affectedRows + " product inserted!\n");
+      // Call updateProduct AFTER the INSERT completes
+      updateProduct();
+    }
+  );
+
+  // logs the actual query being run
+  console.log(query.sql);
+}
+
+function updateProduct() {
+  console.log("Updating all Rocky Road quantities...\n");
+  var query = connection.query(
+    "UPDATE products SET ? WHERE ?",
+    [
+      {
+        quantity: 100 // `quantity` = 100 WHERE
+      },
+      {
+        flavor: "Rocky Road" // WHERE `flavor` = 'Rocky Road'
+      }
+    ], // UPDATE products SET `quantity` = 100 WHERE `flavor` = 'Rocky Road'
+    function(err, res) {
+      console.log(res.affectedRows + " products updated!\n");
+      // Call deleteProduct AFTER the UPDATE completes
+      deleteProduct();
+    }
+  );
+
+  // logs the actual query being run
+  console.log(query.sql);
+}
+
+function deleteProduct() {
+  console.log("Deleting all strawberry icecream...\n");
+  connection.query(
+    "DELETE FROM products WHERE ?",
+    {
+      flavor: "strawberry" // flavor = 'strawbery'
+    },
+    function(err, res) {
+      console.log(res.affectedRows + " products deleted!\n");
+      // Call readProducts AFTER the DELETE completes
+      readProducts();
+    }
+  );
+}
+
+function readProducts() {
+  console.log("Selecting all products...\n");
   connection.query("SELECT * FROM products", function(err, res) {
     if (err) throw err;
+    // Log all results of the SELECT statement
     console.log(res);
+    connection.end();
   });
-
-  connection.end();
-});
+}
